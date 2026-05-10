@@ -1,0 +1,351 @@
+{
+  "info": {
+    "name": "DAMD - Agendamento de Transporte (Sprint 1)",
+    "description": "Coleção de endpoints REST para o Sistema de Agendamento de Transporte\nPUC Minas - LDAMD 2026/1\n\nPré-requisito: servidor rodando em http://localhost:3000\n  cd backend && npm run dev",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "exec": [
+          "const ts = Date.now();",
+          "pm.collectionVariables.set('passengerEmail', `passageiro_${ts}@email.com`);",
+          "pm.collectionVariables.set('driverEmail', `motorista_${ts}@email.com`);",
+          "pm.collectionVariables.set('licensePlate', `TST${String(ts).slice(-4)}`);"
+        ],
+        "type": "text/javascript"
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api",
+      "type": "string"
+    },
+    { "key": "userId",        "value": "", "type": "string" },
+    { "key": "rideId",        "value": "", "type": "string" },
+    { "key": "passengerEmail","value": "", "type": "string" },
+    { "key": "driverEmail",   "value": "", "type": "string" },
+    { "key": "licensePlate",  "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Criar passageiro",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set('userId', pm.response.json().id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/users", "host": ["{{baseUrl}}"], "path": ["users"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"João Silva\",\n  \"email\": \"{{passengerEmail}}\",\n  \"phone\": \"31999990001\"\n}"
+            }
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"id\": \"9acf6e84-2d49-4210-9bfc-0318fe0e35a5\",\n  \"name\": \"João Silva\",\n  \"email\": \"passageiro_1234567890@email.com\",\n  \"phone\": \"31999990001\",\n  \"createdAt\": \"2026-05-05T01:04:37.655Z\",\n  \"updatedAt\": \"2026-05-05T01:04:37.655Z\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Drivers",
+      "item": [
+        {
+          "name": "Criar motorista",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201 Created', () => pm.response.to.have.status(201));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/drivers", "host": ["{{baseUrl}}"], "path": ["drivers"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Carlos Motorista\",\n  \"email\": \"{{driverEmail}}\",\n  \"phone\": \"31999990002\",\n  \"vehicleModel\": \"Honda Civic 2022\",\n  \"licensePlate\": \"{{licensePlate}}\"\n}"
+            }
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"id\": \"97d2721f-c6c6-4696-abf4-5ba24a54d23f\",\n  \"name\": \"Carlos Motorista\",\n  \"email\": \"motorista_1234567890@email.com\",\n  \"phone\": \"31999990002\",\n  \"vehicleModel\": \"Honda Civic 2022\",\n  \"licensePlate\": \"TST7890\",\n  \"createdAt\": \"2026-05-05T01:04:37.810Z\",\n  \"updatedAt\": \"2026-05-05T01:04:37.810Z\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Listar motoristas",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Retorna array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/drivers", "host": ["{{baseUrl}}"], "path": ["drivers"] }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "[\n  {\n    \"id\": \"97d2721f-c6c6-4696-abf4-5ba24a54d23f\",\n    \"name\": \"Carlos Motorista\",\n    \"email\": \"motorista_1234567890@email.com\",\n    \"phone\": \"31999990002\",\n    \"vehicleModel\": \"Honda Civic 2022\",\n    \"licensePlate\": \"TST7890\",\n    \"createdAt\": \"2026-05-05T01:04:37.810Z\",\n    \"updatedAt\": \"2026-05-05T01:04:37.810Z\"\n  }\n]"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Rides",
+      "item": [
+        {
+          "name": "Solicitar corrida",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set('rideId', pm.response.json().id);",
+                  "  pm.test('Status inicial é PENDING', () => pm.expect(pm.response.json().status).to.eql('PENDING'));",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/rides", "host": ["{{baseUrl}}"], "path": ["rides"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"origin\": \"Rua A, 100, Belo Horizonte - MG\",\n  \"destination\": \"Rua B, 200, Belo Horizonte - MG\",\n  \"scheduledAt\": \"2026-05-10T09:00:00Z\"\n}"
+            }
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"id\": \"3ae6db37-9e0c-47d2-94be-e6e5931549d7\",\n  \"userId\": \"9acf6e84-2d49-4210-9bfc-0318fe0e35a5\",\n  \"driverId\": null,\n  \"origin\": \"Rua A, 100, Belo Horizonte - MG\",\n  \"destination\": \"Rua B, 200, Belo Horizonte - MG\",\n  \"status\": \"PENDING\",\n  \"scheduledAt\": \"2026-05-10T09:00:00.000Z\",\n  \"createdAt\": \"2026-05-05T01:04:37.868Z\",\n  \"updatedAt\": \"2026-05-05T01:04:37.868Z\"\n}"
+            },
+            {
+              "name": "404 User not found",
+              "status": "Not Found",
+              "code": 404,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"error\": \"User not found\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Listar corridas",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Retorna array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rides",
+              "host": ["{{baseUrl}}"],
+              "path": ["rides"],
+              "query": [
+                { "key": "status", "value": "PENDING", "disabled": true, "description": "Filtrar: PENDING | ACCEPTED | IN_PROGRESS | COMPLETED | CANCELLED" },
+                { "key": "userId", "value": "{{userId}}", "disabled": true, "description": "Filtrar por passageiro" }
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "[\n  {\n    \"id\": \"3ae6db37-9e0c-47d2-94be-e6e5931549d7\",\n    \"userId\": \"9acf6e84-2d49-4210-9bfc-0318fe0e35a5\",\n    \"driverId\": null,\n    \"origin\": \"Rua A, 100, Belo Horizonte - MG\",\n    \"destination\": \"Rua B, 200, Belo Horizonte - MG\",\n    \"status\": \"PENDING\",\n    \"scheduledAt\": \"2026-05-10T09:00:00.000Z\",\n    \"createdAt\": \"2026-05-05T01:04:37.868Z\",\n    \"updatedAt\": \"2026-05-05T01:04:37.868Z\"\n  }\n]"
+            }
+          ]
+        },
+        {
+          "name": "Buscar corrida por ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('ID corresponde', () => pm.expect(pm.response.json().id).to.eql(pm.collectionVariables.get('rideId')));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rides/{{rideId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["rides", "{{rideId}}"]
+            }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"id\": \"3ae6db37-9e0c-47d2-94be-e6e5931549d7\",\n  \"status\": \"PENDING\"\n}"
+            },
+            {
+              "name": "404 Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"error\": \"Ride not found\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Atualizar status da corrida",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Status atualizado para ACCEPTED', () => pm.expect(pm.response.json().status).to.eql('ACCEPTED'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/rides/{{rideId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["rides", "{{rideId}}", "status"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"ACCEPTED\"\n}"
+            }
+          },
+          "response": [
+            {
+              "name": "200 OK - Status atualizado",
+              "status": "OK",
+              "code": 200,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"id\": \"3ae6db37-9e0c-47d2-94be-e6e5931549d7\",\n  \"status\": \"ACCEPTED\"\n}"
+            },
+            {
+              "name": "400 Transição inválida",
+              "status": "Bad Request",
+              "code": 400,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"error\": \"Cannot transition from COMPLETED to ACCEPTED\"\n}"
+            },
+            {
+              "name": "400 Status inválido",
+              "status": "Bad Request",
+              "code": 400,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"error\": \"Invalid status. Valid values: PENDING, ACCEPTED, IN_PROGRESS, COMPLETED, CANCELLED\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Health Check",
+      "item": [
+        {
+          "name": "Health",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Status ok', () => pm.expect(pm.response.json().status).to.eql('ok'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "http://localhost:3000/health", "host": ["http://localhost:3000"], "path": ["health"] }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"status\": \"ok\"\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
