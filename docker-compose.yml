@@ -1,0 +1,17 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: damd-postgres
+    environment:
+      POSTGRES_USER: damd
+      POSTGRES_PASSWORD: damd123
+      POSTGRES_DB: damd_transport
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

@@ -1,0 +1,20 @@
+node_modules/
+dist/
+.env
+*.db
+*.db-journal
+
+# Prisma
+backend/prisma/migrations/*.sql
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
