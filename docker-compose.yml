@@ -13,5 +13,19 @@ services:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
 
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: damd-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: damd
+      RABBITMQ_DEFAULT_PASS: damd123
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    restart: unless-stopped
+
 volumes:
   postgres_data:
+  rabbitmq_data:
