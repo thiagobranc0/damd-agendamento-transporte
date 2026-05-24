@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express'
+import { Prisma } from '@prisma/client'
 import { AppError } from '../../../shared/errors/app-error'
 
 export function errorMiddleware(
@@ -9,6 +10,12 @@ export function errorMiddleware(
 ): void {
   if (err instanceof AppError) {
     res.status(err.statusCode).json({ error: err.message })
+    return
+  }
+
+  if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+    const fields = (err.meta?.target as string[])?.join(', ') ?? 'field'
+    res.status(409).json({ error: `A record with this ${fields} already exists` })
     return
   }
 

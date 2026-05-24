@@ -5,16 +5,18 @@ import { GetRideUseCase } from '../../../application/use-cases/ride/get-ride.use
 import { UpdateRideStatusUseCase } from '../../../application/use-cases/ride/update-ride-status.use-case'
 import { PrismaRideRepository } from '../../database/repositories/prisma-ride.repository'
 import { PrismaUserRepository } from '../../database/repositories/prisma-user.repository'
+import { RabbitMQEventPublisher } from '../../messaging/rabbitmq-event-publisher'
 import { RideStatus } from '../../../domain/entities/ride.entity'
 import { AppError } from '../../../shared/errors/app-error'
 
 const rideRepository = new PrismaRideRepository()
 const userRepository = new PrismaUserRepository()
+const eventPublisher = new RabbitMQEventPublisher()
 
-const createRide = new CreateRideUseCase(rideRepository, userRepository)
+const createRide = new CreateRideUseCase(rideRepository, userRepository, eventPublisher)
 const listRides = new ListRidesUseCase(rideRepository)
 const getRide = new GetRideUseCase(rideRepository)
-const updateRideStatus = new UpdateRideStatusUseCase(rideRepository)
+const updateRideStatus = new UpdateRideStatusUseCase(rideRepository, eventPublisher)
 
 export async function createRideController(
   req: Request,
