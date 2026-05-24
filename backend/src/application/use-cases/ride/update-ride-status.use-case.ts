@@ -1,5 +1,6 @@
 import { Ride, RideStatus } from '../../../domain/entities/ride.entity'
 import { RideRepository } from '../../repositories/ride.repository'
+import { EventPublisher } from '../../events/event-publisher'
 import { AppError } from '../../../shared/errors/app-error'
 
 const VALID_TRANSITIONS: Record<RideStatus, RideStatus[]> = {
@@ -16,7 +17,10 @@ interface Input {
 }
 
 export class UpdateRideStatusUseCase {
-  constructor(private readonly rideRepository: RideRepository) {}
+  constructor(
+    private readonly rideRepository: RideRepository,
+    private readonly eventPublisher: EventPublisher
+  ) {}
 
   async execute(input: Input): Promise<Ride> {
     const ride = await this.rideRepository.findById(input.id)
@@ -30,6 +34,17 @@ export class UpdateRideStatusUseCase {
       )
     }
 
-    return this.rideRepository.updateStatus(input.id, input.status)
+    const previousStatus = ride.status
+    const updated = await this.rideRepository.updateStatus(input.id, input.status)
+
+    await this.eventPublisher.publish('ride.status_updated', {
+      rideId: updated.id,
+      userId: updated.userId,
+      driverId: updated.driverId ?? null,
+      previousStatus,
+      newStatus: updated.status,
+    })
+
+    return updated
   }
 }
