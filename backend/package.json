@@ -5,7 +5,8 @@
   "main": "dist/server.js",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
-    "worker": "ts-node-dev --respawn --transpile-only src/worker.ts",
+    "consumer:driver": "ts-node-dev --respawn --transpile-only src/consumer-driver.ts",
+    "consumer:passenger": "ts-node-dev --respawn --transpile-only src/consumer-passenger.ts",
     "build": "tsc",
     "start": "node dist/server.js",
     "migrate": "prisma migrate dev",
