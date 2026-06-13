@@ -9,5 +9,5 @@ export interface RideRepository {
   create(data: CreateRideData): Promise<Ride>
   findById(id: string): Promise<Ride | null>
   findAll(filters?: RideFilters): Promise<Ride[]>
-  updateStatus(id: string, status: RideStatus): Promise<Ride>
+  updateStatus(id: string, status: RideStatus, driverId?: string): Promise<Ride>
 }

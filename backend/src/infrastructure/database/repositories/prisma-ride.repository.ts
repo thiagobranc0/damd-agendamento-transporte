@@ -25,8 +25,11 @@ export class PrismaRideRepository implements RideRepository {
     return rides.map(r => ({ ...r, status: r.status as RideStatus }))
   }
 
-  async updateStatus(id: string, status: RideStatus): Promise<Ride> {
-    const ride = await prisma.ride.update({ where: { id }, data: { status } })
+  async updateStatus(id: string, status: RideStatus, driverId?: string): Promise<Ride> {
+    const ride = await prisma.ride.update({
+      where: { id },
+      data: { status, ...(driverId ? { driverId } : {}) },
+    })
     return { ...ride, status: ride.status as RideStatus }
   }
 }

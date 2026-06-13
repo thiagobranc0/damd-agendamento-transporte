@@ -14,6 +14,7 @@ const VALID_TRANSITIONS: Record<RideStatus, RideStatus[]> = {
 interface Input {
   id: string
   status: RideStatus
+  driverId?: string
 }
 
 export class UpdateRideStatusUseCase {
@@ -35,7 +36,7 @@ export class UpdateRideStatusUseCase {
     }
 
     const previousStatus = ride.status
-    const updated = await this.rideRepository.updateStatus(input.id, input.status)
+    const updated = await this.rideRepository.updateStatus(input.id, input.status, input.driverId)
 
     await this.eventPublisher.publish('ride.status_updated', {
       rideId: updated.id,

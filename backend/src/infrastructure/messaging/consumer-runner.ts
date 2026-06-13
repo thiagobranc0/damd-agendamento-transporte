@@ -7,8 +7,8 @@ interface ConsumerConfig<T> {
   queue: string
   /** Routing key vinculada à fila no exchange topic. */
   routingKey: string
-  /** Handler de domínio chamado para cada mensagem (envelope JSON já parseado). */
-  handler: (envelope: T) => void
+  /** Handler de domínio chamado para cada mensagem (envelope JSON já parseado). Pode ser assíncrono. */
+  handler: (envelope: T) => void | Promise<void>
   /** Rótulo usado nos logs deste processo (ex.: "consumer:driver"). */
   label: string
 }
@@ -30,11 +30,11 @@ export async function startConsumer<T>({ queue, routingKey, handler, label }: Co
 
   console.log(`[${label}] Aguardando "${routingKey}" na fila "${queue}"...`)
 
-  channel.consume(queue, (msg) => {
+  channel.consume(queue, async (msg) => {
     if (!msg) return
     try {
       const envelope = JSON.parse(msg.content.toString()) as T
-      handler(envelope)
+      await handler(envelope)
       channel.ack(msg)
     } catch (err) {
       console.error(`[${label}] Erro ao processar "${routingKey}":`, (err as Error).message)

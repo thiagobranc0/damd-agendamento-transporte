@@ -67,11 +67,11 @@ export async function updateRideStatusController(
   next: NextFunction
 ): Promise<void> {
   try {
-    const { status } = req.body
+    const { status, driverId } = req.body
     if (!Object.values(RideStatus).includes(status)) {
       throw new AppError(`Invalid status. Valid values: ${Object.values(RideStatus).join(', ')}`)
     }
-    const ride = await updateRideStatus.execute({ id: req.params.id, status })
+    const ride = await updateRideStatus.execute({ id: req.params.id, status, driverId })
     res.json(ride)
   } catch (err) {
     next(err)
