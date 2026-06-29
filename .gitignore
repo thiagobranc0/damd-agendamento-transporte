@@ -18,3 +18,12 @@ Thumbs.db
 # Logs
 *.log
 npm-debug.log*
+
+# Assistente de IA / ferramentas locais (não versionar)
+.claude/
+CLAUDE.md
+
+# Documentos internos de contexto e planejamento das sprints (não fazem parte da entrega)
+docs/sprint*-context.md
+docs/sprint*-plan.md
+docs/sprint*-refatoracao-mom.md
