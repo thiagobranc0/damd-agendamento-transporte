@@ -63,3 +63,15 @@ model Notification {
 
   @@index([userId, read])
 }
+
+// Notificações broadcast para motoristas (demanda nova via ride.created)
+model DriverNotification {
+  id        String   @id @default(uuid())
+  rideId    String
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([read])
+}

@@ -1,3 +1,6 @@
+import { PrismaDriverNotificationRepository } from '../../database/repositories/prisma-driver-notification.repository'
+import { CreateDriverNotificationUseCase } from '../../../application/use-cases/driver-notification/create-driver-notification.use-case'
+
 interface RideCreatedData {
   rideId: string
   userId: string
@@ -12,7 +15,10 @@ interface RideCreatedEnvelope {
   data: RideCreatedData
 }
 
-export function notifyDriverHandler(envelope: RideCreatedEnvelope): void {
+const repo = new PrismaDriverNotificationRepository()
+const createDriverNotification = new CreateDriverNotificationUseCase(repo)
+
+export async function notifyDriverHandler(envelope: RideCreatedEnvelope): Promise<void> {
   const { data } = envelope
   const scheduledAt = new Date(data.scheduledAt).toLocaleString('pt-BR')
 
@@ -22,5 +28,10 @@ export function notifyDriverHandler(envelope: RideCreatedEnvelope): void {
     ` | ${data.origin} → ${data.destination}` +
     ` | agendada para ${scheduledAt}`
   )
-  // Sprint 3/4: substituir por gateway WebSocket/FCM para os apps dos motoristas
+
+  await createDriverNotification.execute({
+    rideId: data.rideId,
+    title: 'Nova corrida disponível',
+    message: `${data.origin} → ${data.destination} | agendada para ${scheduledAt}`,
+  })
 }
