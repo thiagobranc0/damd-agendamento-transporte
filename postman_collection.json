@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "DAMD - Agendamento de Transporte (Sprint 1)",
-    "description": "Coleção de endpoints REST para o Sistema de Agendamento de Transporte\nPUC Minas - LDAMD 2026/1\n\nPré-requisito: servidor rodando em http://localhost:3000\n  cd backend && npm run dev",
+    "name": "DAMD - Agendamento de Transporte (Sprint 4 - Final)",
+    "description": "Coleção de endpoints REST para o Sistema de Agendamento de Transporte\nPUC Minas - LDAMD 2026/1\n\nInclui os endpoints das Sprints 1-4: usuários, motoristas, corridas, notificações do passageiro e demandas (notificações) do motorista.\n\nPré-requisito: servidor rodando em http://localhost:3000\n  cd backend && npm run dev\n\nFluxo de notificação assíncrona (polling):\n- App do passageiro: GET /notifications?userId=X&unread=true (5s)\n- App do motorista:  GET /driver/notifications?unread=true (5s)",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "event": [
@@ -25,7 +25,9 @@
       "type": "string"
     },
     { "key": "userId",        "value": "", "type": "string" },
+    { "key": "driverId",      "value": "", "type": "string" },
     { "key": "rideId",        "value": "", "type": "string" },
+    { "key": "notificationId","value": "", "type": "string" },
     { "key": "passengerEmail","value": "", "type": "string" },
     { "key": "driverEmail",   "value": "", "type": "string" },
     { "key": "licensePlate",  "value": "", "type": "string" }
@@ -81,7 +83,10 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Status 201 Created', () => pm.response.to.have.status(201));"
+                  "pm.test('Status 201 Created', () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201) {",
+                  "  pm.collectionVariables.set('driverId', pm.response.json().id);",
+                  "}"
                 ],
                 "type": "text/javascript"
               }
@@ -206,7 +211,8 @@
               "path": ["rides"],
               "query": [
                 { "key": "status", "value": "PENDING", "disabled": true, "description": "Filtrar: PENDING | ACCEPTED | IN_PROGRESS | COMPLETED | CANCELLED" },
-                { "key": "userId", "value": "{{userId}}", "disabled": true, "description": "Filtrar por passageiro" }
+                { "key": "userId", "value": "{{userId}}", "disabled": true, "description": "Filtrar por passageiro" },
+                { "key": "driverId", "value": "{{driverId}}", "disabled": true, "description": "Filtrar por motorista (tela 'Em Andamento' do app do motorista); combinável com status" }
               ]
             }
           },
@@ -308,6 +314,163 @@
               "code": 400,
               "header": [{ "key": "Content-Type", "value": "application/json" }],
               "body": "{\n  \"error\": \"Invalid status. Valid values: PENDING, ACCEPTED, IN_PROGRESS, COMPLETED, CANCELLED\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Notifications (Passageiro)",
+      "item": [
+        {
+          "name": "Listar notificações do passageiro",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Retorna array', () => pm.expect(pm.response.json()).to.be.an('array'));",
+                  "const arr = pm.response.json();",
+                  "if (Array.isArray(arr) && arr.length > 0) {",
+                  "  pm.collectionVariables.set('notificationId', arr[0].id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/notifications?userId={{userId}}&unread=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications"],
+              "query": [
+                { "key": "userId", "value": "{{userId}}", "description": "Passageiro dono das notificações" },
+                { "key": "unread", "value": "true", "description": "Apenas não lidas (polling do app — 5s)" }
+              ]
+            },
+            "description": "Feed consumido pelo NotificationsPoller do app do passageiro. Cada linha é gravada pelo consumer:passenger ao processar ride.status_updated."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "[\n  {\n    \"id\": \"b1e2c3d4-0000-0000-0000-000000000001\",\n    \"userId\": \"9acf6e84-2d49-4210-9bfc-0318fe0e35a5\",\n    \"rideId\": \"3ae6db37-9e0c-47d2-94be-e6e5931549d7\",\n    \"type\": \"RIDE_STATUS_UPDATED\",\n    \"title\": \"Corrida aceita\",\n    \"message\": \"Sua corrida foi aceita por um motorista.\",\n    \"read\": false,\n    \"createdAt\": \"2026-06-28T14:35:00.000Z\"\n  }\n]"
+            }
+          ]
+        },
+        {
+          "name": "Marcar notificação como lida",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 OK', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/notifications/{{notificationId}}/read",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications", "{{notificationId}}", "read"]
+            }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"id\": \"b1e2c3d4-0000-0000-0000-000000000001\",\n  \"read\": true\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Driver Notifications (Motorista)",
+      "item": [
+        {
+          "name": "Listar demandas do motorista",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Retorna array', () => pm.expect(pm.response.json()).to.be.an('array'));",
+                  "const arr = pm.response.json();",
+                  "if (Array.isArray(arr) && arr.length > 0) {",
+                  "  pm.collectionVariables.set('notificationId', arr[0].id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/driver/notifications?unread=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["driver", "notifications"],
+              "query": [
+                { "key": "unread", "value": "true", "description": "Apenas não lidas (polling do app do motorista — 5s)" }
+              ]
+            },
+            "description": "Feed broadcast de novas corridas, consumido pelo DemandPoller do app do motorista. Cada linha é gravada pelo consumer:driver ao processar ride.created. Sem driverId: a demanda é broadcast (qualquer motorista pode atender)."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "[\n  {\n    \"id\": \"d1e2c3d4-0000-0000-0000-000000000001\",\n    \"rideId\": \"3ae6db37-9e0c-47d2-94be-e6e5931549d7\",\n    \"title\": \"Nova corrida disponível\",\n    \"message\": \"Nova corrida disponível: Rua A, 100 → Rua B, 200\",\n    \"read\": false,\n    \"createdAt\": \"2026-06-28T14:30:00.000Z\"\n  }\n]"
+            }
+          ]
+        },
+        {
+          "name": "Marcar demanda como lida",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 OK', () => pm.response.to.have.status(200));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/driver/notifications/{{notificationId}}/read",
+              "host": ["{{baseUrl}}"],
+              "path": ["driver", "notifications", "{{notificationId}}", "read"]
+            }
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"id\": \"d1e2c3d4-0000-0000-0000-000000000001\",\n  \"read\": true\n}"
             }
           ]
         }

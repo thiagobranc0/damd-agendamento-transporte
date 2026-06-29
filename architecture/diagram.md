@@ -37,12 +37,12 @@ graph TB
     end
 
     subgraph Consumers ["🔄 Consumidores (processos independentes)"]
-        ConsumerDriver["consumer-driver.ts\n(npm run consumer:driver)\n→ notifyDriverHandler (stub, Sprint 4)"]
+        ConsumerDriver["consumer-driver.ts\n(npm run consumer:driver)\n→ notifyDriverHandler\n(PERSISTE em driver_notifications)"]
         ConsumerPassenger["consumer-passenger.ts\n(npm run consumer:passenger)\n→ notifyPassengerHandler\n(PERSISTE em notifications)"]
     end
 
     subgraph DB ["🗄️ Infraestrutura de Dados"]
-        Postgres[("PostgreSQL (Docker)\nUser · Driver · Ride · Notification")]
+        Postgres[("PostgreSQL (Docker)\nUser · Driver · Ride\nNotification · DriverNotification")]
     end
 
     Controllers --> UseCases
@@ -58,8 +58,9 @@ graph TB
     RabbitMQ --> QueueDriver
     RabbitMQ --> QueuePassenger
 
-    ConsumerDriver -- "consume + ack" --> QueueDriver
+    ConsumerDriver -- "consume + await + ack" --> QueueDriver
     ConsumerPassenger -- "consume + await + ack" --> QueuePassenger
+    ConsumerDriver -- "INSERT driver_notification" --> Postgres
     ConsumerPassenger -- "INSERT notification" --> Postgres
 
     Presentation --> AppState
@@ -128,9 +129,9 @@ graph TD
 | App do passageiro | Flutter/Dart + Riverpod | Cliente humano: identifica-se, solicita corridas, acompanha status em tempo quase-real via polling |
 | Backend REST | Node.js + Express + TypeScript | Lógica de negócio, expõe API RESTful, produtor de eventos |
 | ORM | Prisma | Acesso tipado ao banco de dados |
-| Banco de Dados | PostgreSQL (Docker) | Persistência: User, Driver, Ride, Notification |
+| Banco de Dados | PostgreSQL (Docker) | Persistência: User, Driver, Ride, Notification, DriverNotification |
 | Message Broker | RabbitMQ 3.13 (Docker) | Exchange topic `rides.events`; entrega durável produtor → consumidor |
-| consumer-driver | Node.js (processo independente) | Consome `notifications.driver` (`ride.created`); stub até Sprint 4 (app do motorista) |
+| consumer-driver | Node.js (processo independente) | Consome `notifications.driver` (`ride.created`); **persiste** linha em `driver_notifications` para o app do motorista fazer polling |
 | consumer-passenger | Node.js (processo independente) | Consome `notifications.passenger` (`ride.status_updated`); **persiste** linha em `notifications` para o app fazer polling |
 
 ## Fluxo de Eventos + Atualização Assíncrona do App
@@ -141,7 +142,11 @@ POST /api/rides (HTTP síncrono)
   → publica "ride.created" em rides.events → retorna 201
          ↕ (assíncrono — sem REST entre backend e consumidor)
 consumer-driver consome notifications.driver
-  → notifyDriverHandler loga (stub Sprint 4) → ack
+  → notifyDriverHandler PERSISTE linha em driver_notifications
+  → await antes do ack (nack em falha de banco)
+         ↕
+App do motorista faz polling GET /driver/notifications?unread=true (~5s)
+  → detecta demanda nova → rebusca lista de corridas PENDING sem ação manual
 
 PATCH /api/rides/:id/status (HTTP síncrono, driverId opcional)
   → UpdateRideStatusUseCase persiste no banco
