@@ -3,6 +3,7 @@ import { RideRepository } from '../../repositories/ride.repository'
 
 interface Input {
   userId?: string
+  driverId?: string
   status?: RideStatus
 }
 

@@ -37,9 +37,10 @@ export async function listRidesController(
   next: NextFunction
 ): Promise<void> {
   try {
-    const { userId, status } = req.query
+    const { userId, driverId, status } = req.query
     const rides = await listRides.execute({
       userId: userId as string | undefined,
+      driverId: driverId as string | undefined,
       status: status as RideStatus | undefined,
     })
     res.json(rides)

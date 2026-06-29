@@ -2,6 +2,7 @@ import { CreateRideData, Ride, RideStatus } from '../../domain/entities/ride.ent
 
 export interface RideFilters {
   userId?: string
+  driverId?: string
   status?: RideStatus
 }
 

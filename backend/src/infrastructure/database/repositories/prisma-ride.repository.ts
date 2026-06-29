@@ -18,6 +18,7 @@ export class PrismaRideRepository implements RideRepository {
     const rides = await prisma.ride.findMany({
       where: {
         ...(filters?.userId && { userId: filters.userId }),
+        ...(filters?.driverId && { driverId: filters.driverId }),
         ...(filters?.status && { status: filters.status }),
       },
       orderBy: { createdAt: 'desc' },
