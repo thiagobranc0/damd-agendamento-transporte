@@ -4,6 +4,7 @@
 **Instituição:** PUC Minas — Engenharia de Software, 5º Período  
 **Semestre:** 1º Semestre 2026  
 **Aluno:** Thiago Branco
+**Vídeo de demonstração (screencast):** https://www.youtube.com/watch?v=VylVB6A0p5Q
 
 ---
 
@@ -246,6 +247,8 @@ O backend segue os princípios REST para exposição de recursos (RICHARDSON, 20
 O sistema DAMD demonstra com sucesso a integração de todos os conceitos estudados na disciplina: uma arquitetura orientada a eventos com RabbitMQ como MOM, um backend REST com Clean Architecture em Node.js/TypeScript, dois aplicativos móveis Flutter com Riverpod para gerenciamento de estado, e um fluxo ponta-a-ponta que evidencia a assincronicidade real via eventos (não polling cego).
 
 O "money shot" — o app do passageiro refletindo a aceitação da corrida pelo motorista sem nenhuma ação manual, com o gatilho real sendo um evento `ride.status_updated` no RabbitMQ — demonstra que os quatro componentes funcionam de forma integrada e distribuída conforme proposto.
+
+O vídeo de demonstração completo do fluxo ponta-a-ponta está disponível em: https://www.youtube.com/watch?v=VylVB6A0p5Q
 
 ---
 
